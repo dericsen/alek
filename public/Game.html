@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chinese New Year - Hidden Object Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #8B0000 0%, #DC143C 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .game-container {
+            width: 90vw;
+            max-width: 1200px;
+            height: 90vh;
+            max-height: 800px;
+            background: #FFF8DC;
+            border: 8px solid #FFD700;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(90deg, #DC143C 0%, #8B0000 100%);
+            color: #FFD700;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 4px solid #FFD700;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .progress-info div {
+            font-size: 1.2em;
+            font-weight: bold;
+            padding: 5px 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            margin: 5px;
+        }
+
+        .game-scene {
+            width: 100%;
+            height: calc(100% - 160px);
+            position: relative;
+            background-size: cover;
+            background-position: center;
+            cursor: crosshair;
+        }
+
+        /* Level 1 - Angpao Scene */
+        .scene-level1 {
+            background-image: url('images/bg1.new.png');
+            /* path gambarmu */
+            background-size: cover;
+            /* membuat gambar memenuhi scene */
+            background-position: center;
+            /* pusatkan gambar */
+            background-repeat: no-repeat;
+            /* jangan ulang gambar */
+        }
+
+        /* Level 2 - Koin Scene */
+        .scene-level2 {
+            background-image: url('images/bg2.new.png');
+            /* path gambarmu */
+            background-size: cover;
+            /* membuat gambar memenuhi scene */
+            background-position: center;
+            /* pusatkan gambar */
+            background-repeat: no-repeat;
+            /* jangan ulang gambar */
+        }
+
+        /* Level 3 - kue-keranjang Scene */
+        .scene-level3 {
+            background-image: url('images/bg3.new.png');
+            /* path gambarmu */
+            background-size: cover;
+            /* membuat gambar memenuhi scene */
+            background-position: center;
+            /* pusatkan gambar */
+            background-repeat: no-repeat;
+            /* jangan ulang gambar */
+        }
+
+        /* Dekorasi scene */
+        .lantern {
+            position: absolute;
+            width: 60px;
+            height: 80px;
+            background: radial-gradient(circle, #FF0000 0%, #8B0000 100%);
+            border-radius: 50% 50% 40% 40%;
+            border: 3px solid #FFD700;
+            animation: swing 3s ease-in-out infinite;
+        }
+
+        .lantern::after {
+            content: '福';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #FFD700;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        @keyframes swing {
+
+            0%,
+            100% {
+                transform: rotate(-5deg);
+            }
+
+            50% {
+                transform: rotate(5deg);
+            }
+        }
+
+        .firework {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: radial-gradient(circle, #FFD700 0%, transparent 70%);
+            border-radius: 50%;
+            animation: sparkle 2s ease-in-out infinite;
+        }
+
+        @keyframes sparkle {
+
+            0%,
+            100% {
+                opacity: 0.3;
+                transform: scale(0.8);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+        }
+
+        /* Hidden Objects */
+        .hidden-object {
+            position: absolute;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+            z-index: 5;
+        }
+
+        .hidden-object:hover {
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 10px #FFD700);
+            z-index: 15;
+        }
+
+        .hidden-object.found {
+            animation: fadeOut 0.5s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes fadeOut {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.3) rotate(10deg);
+                opacity: 0.7;
+            }
+
+            100% {
+                transform: scale(0);
+                opacity: 0;
+            }
+        }
+
+        /* Angpao styling */
+        .angpao {
+            width: 50px;
+            height: 70px;
+            background: linear-gradient(135deg, #FF0000 0%, #DC143C 100%);
+            border: 2px solid #FFD700;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        /* Koin styling */
+        .koin {
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, #FFD700 0%, #FFA500 100%);
+            border: 3px solid #8B4513;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .koin::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            border: 2px solid #8B4513;
+            border-radius: 3px;
+        }
+
+        /* kue-keranjang styling */
+        .kue-keranjang {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #D2691E 0%, #FFB347 100%);
+            /* warna cokelat-oranye */
+            border-radius: 10%;
+            /* kotak agak membulat */
+            border: 2px solid #8B4513;
+            /* garis tepi gelap */
+            position: relative;
+            box-shadow: inset -2px -2px 5px rgba(0, 0, 0, 0.2);
+            /* efek anyaman */
+        }
+
+        /* efek kilau atas */
+        .kue-keranjang::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 25px;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+        }
+
+
+        /* Modal */
+        .modal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            padding: 40px;
+            border-radius: 20px;
+            border: 5px solid #DC143C;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+        }
+
+        .modal.show {
+            display: block;
+            animation: modalPop 0.5s ease-out;
+        }
+
+        @keyframes modalPop {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+            }
+
+            50% {
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .modal h2 {
+            color: #DC143C;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal button {
+            background: #DC143C;
+            color: #FFD700;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.3em;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .modal button:hover {
+            background: #8B0000;
+            transform: scale(1.05);
+        }
+
+        /* Obstacles - Objek Penghalang */
+        .obstacle {
+            position: absolute;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Box - Kotak kado */
+        .obstacle.box {
+            background: linear-gradient(135deg, #FF6347 0%, #DC143C 100%);
+            border: 3px solid #FFD700;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .obstacle.box::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: #FFD700;
+            transform: translateY(-50%);
+        }
+
+        .obstacle.box::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 8px;
+            background: #FFD700;
+            transform: translateX(-50%);
+        }
+
+        /* Plant - Tanaman hias */
+        .obstacle.plant {
+            background: none;
+        }
+
+        .obstacle.plant::before {
+            content: '🎋';
+            font-size: 80px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(3px 3px 5px rgba(0, 0, 0, 0.3));
+        }
+
+        /* Vase - Vas bunga */
+        .obstacle.vase {
+            background: linear-gradient(180deg, #8B4513 0%, #A0522D 100%);
+            border-radius: 20% 20% 40% 40%;
+            border: 3px solid #654321;
+            box-shadow: inset 0 5px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .obstacle.vase::before {
+            content: '🌸';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 35px;
+        }
+
+        /* Drum - Gendang */
+        .obstacle.drum {
+            background: linear-gradient(90deg, #8B0000 0%, #DC143C 50%, #8B0000 100%);
+            border-radius: 10px;
+            border: 4px solid #FFD700;
+            position: relative;
+        }
+
+        .obstacle.drum::before,
+        .obstacle.drum::after {
+            content: '';
+            position: absolute;
+            left: 10%;
+            right: 10%;
+            height: 4px;
+            background: #FFD700;
+        }
+
+        .obstacle.drum::before {
+            top: 30%;
+        }
+
+        .obstacle.drum::after {
+            top: 60%;
+        }
+
+        /* Scroll - Gulungan kertas */
+        .obstacle.scroll {
+            background: linear-gradient(180deg, #F5DEB3 0%, #DEB887 100%);
+            border-radius: 50px;
+            border: 2px solid #8B4513;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .obstacle.scroll::before {
+            content: '福';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 30px;
+            color: #8B0000;
+            font-weight: bold;
+        }
+
+        /* Basket - Keranjang */
+        .obstacle.basket {
+            background: linear-gradient(135deg, #D2691E 0%, #8B4513 100%);
+            border-radius: 20% 20% 50% 50%;
+            border: 3px solid #654321;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .obstacle.basket::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            background: repeating-linear-gradient(90deg,
+                    #A0522D 0px,
+                    #A0522D 8px,
+                    #8B4513 8px,
+                    #8B4513 16px);
+        }
+
+        /* Fan - Kipas */
+        .obstacle.fan {
+            background: radial-gradient(circle, #FFD700 0%, #FFA500 100%);
+            border-radius: 50% 50% 10% 10%;
+            border: 3px solid #DC143C;
+            position: relative;
+        }
+
+        .obstacle.fan::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 60%;
+            height: 60%;
+            background: repeating-linear-gradient(45deg,
+                    #FF0000 0px,
+                    #FF0000 10px,
+                    #FFD700 10px,
+                    #FFD700 20px);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Teapot - Teko */
+        .obstacle.teapot {
+            background: linear-gradient(135deg, #B8860B 0%, #DAA520 100%);
+            border-radius: 40% 40% 50% 50%;
+            border: 3px solid #8B6914;
+            position: relative;
+        }
+
+        .obstacle.teapot::before {
+            content: '';
+            position: absolute;
+            top: 20%;
+            right: -15px;
+            width: 30px;
+            height: 20px;
+            background: #B8860B;
+            border-radius: 0 50% 50% 0;
+            border: 2px solid #8B6914;
+            border-left: none;
+        }
+
+        .obstacle.teapot::after {
+            content: '';
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 25px;
+            background: #B8860B;
+            border-radius: 5px 5px 0 0;
+            border: 2px solid #8B6914;
+        }
+
+        /* Plate - Piring */
+        .obstacle.plate {
+            background: radial-gradient(circle, #FFF 0%, #F0F0F0 70%, #DDD 100%);
+            border-radius: 50%;
+            border: 4px solid #FFD700;
+            box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .obstacle.plate::before {
+            content: '🍊';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 40px;
+        }
+
+        /* Particle effect */
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #FFD700;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleFall 1s ease-out forwards;
+        }
+
+        @keyframes particleFall {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(100px) scale(0);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>🧧 Chinese New Year 🧧</h1>
+            <div class="progress-bar">
+                <div class="progress-info">
+                    <div>Level: <span id="currentLevel">1</span></div>
+                    <div>Objek: <span id="objectType">Angpao</span></div>
+                    <div>Ditemukan: <span id="foundCount">0</span>/<span id="totalCount">5</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-scene" id="gameScene"></div>
+
+        <div class="modal" id="levelCompleteModal">
+            <h2>🎉 Level Selesai! 🎉</h2>
+            <button id="nextLevelBtn">Lanjut ke Level Berikutnya</button>
+        </div>
+
+        <div class="modal" id="gameCompleteModal">
+            <h2>🎊 Selamat! 🎊</h2>
+            <p style="color: #DC143C; font-size: 1.5em; margin-bottom: 20px;">Anda telah menyelesaikan semua level!</p>
+            <button id="restartBtn">Main Lagi</button>
+        </div>
+    </div>
+
+    <script>
+        // Audio context untuk efek suara
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(frequency = 800, duration = 0.1) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        // Game state
+        const gameState = {
+            currentLevel: 1,
+            foundObjects: 0,
+            totalObjects: 5,
+            levels: [
+                /*{
+                    level: 1,
+                    objectType: 'Angpao',
+                    objectClass: 'angpao',
+                    objectContent: '福',
+                    sceneClass: 'scene-level1',
+                    // 15 titik kemungkinan munculnya angpao (silakan ubah sesuai keinginan)
+                    allPositions: [
+                        //{ top: '35%', left: '20.8%', size: 0.2 },
+                        //{ top: '71%', left: '63.5%', size: 0.2 },
+                        //{ top: '73.3%', left: '20.1%', size: 0.2 },
+                        //{ top: '78.7%', left: '3%', size: 0.4 },
+                        //{ top: '9%', left: '74.5%', size: 0.2 },
+                        //{ top: '14%', left: '38%', size: 0.2 },
+                        //{ top: '20%', left: '68%', size: 0.2 },
+                        //{ top: '55%', left: '53.5%', size: 0.2 },
+                        //{ top: '65%', left: '27%', size: 0.17 },
+                        //{ top: '60%', left: '35.5%', size: 0.2 },
+                        //{ top: '68%', left: '66%', size: 0.2 },
+                        //{ top: '68%', left: '92.55%', size: 0.25 },
+                        //{ top: '45%', left: '50%', size: 1 },
+                        //{ top: '30%', left: '40%', size: 0.9 },
+                        //{ top: '60%', left: '45%', size: 1 }
+                    ],
+                    obstacles: [
+                        //{ type: 'box', top: '37%', left: '8%', width: '20px', height: '10px' },
+                        // { type: 'plant', top: '58%', left: '23%', width: '100px', height: '120px' }
+                    ]
+                },*/
+                {
+                    level: 2,
+                    objectType: 'Koin',
+                    objectClass: 'koin',
+                    objectContent: '',
+                    sceneClass: 'scene-level2',
+                    allPositions: [
+                        //{ top: '3.5%', left: '14%', size: 0.2 },
+                        //{ top: '68%', left: '3%', size: 0.2 },
+                        //{ top: '47.4%', left: '6.2%', size: 0.2 },
+                        //{ top: '26.5%', left: '65.2%', size: 0.25 },
+                        //{ top: '9%', left: '64.5%', size: 0.2 },
+                        //{ top: '10.5%', left: '34.6%', size: 0.2 },
+                        { top: '48.5%', left: '85.3%', size: 0.2 },
+                        //{ top: '73.5%', left: '33.4%', size: 0.3 },
+                        //{ top: '82%', left: '85.2%', size: 0.2 },
+                        //{ top: '84%', left: '45.6%', size: 0.2 },
+                        //{ top: '6.4%', left: '73.4%', size: 0.2 },
+                        //{ top: '16.5%', left: '61.5%', size: 0.2 },
+                        //{ top: '35%', left: '12%', size: 0.22 },
+                        //{ top: '58%', left: '70%', size: 0.19 },
+                        //{ top: '68%', left: '92%', size: 0.21 }
+                    ],
+                    obstacles: [
+                        // { type: 'vase', top: '53%', left: '28%', width: '90px', height: '110px' },
+                        // { type: 'drum', top: '23%', left: '63%', width: '110px', height: '90px' },
+                        //  { type: 'scroll', top: '38%', left: '43%', width: '100px', height: '80px' }
+                    ]
+                },
+                {
+                    level: 3,
+                    objectType: 'kue-keranjang',
+                    objectClass: 'kue-keranjang',
+                    objectContent: '',
+                    sceneClass: 'scene-level3',
+                    // 15 titik kemungkinan munculnya kue-keranjang (tersembunyi dengan baik, ukuran 0.15-0.25)
+                    allPositions: [
+                        { top: '14%', left: '10%', size: 0.19 },
+                        { top: '27%', left: '18%', size: 0.21 },
+                        { top: '20%', left: '42%', size: 0.18 },
+                        { top: '34%', left: '35%', size: 0.23 },
+                        { top: '48%', left: '25%', size: 0.2 },
+                        { top: '41%', left: '52%', size: 0.17 },
+                        { top: '54%', left: '45%', size: 0.22 },
+                        { top: '68%', left: '32%', size: 0.19 },
+                        { top: '61%', left: '68%', size: 0.21 },
+                        { top: '76%', left: '20%', size: 0.18 },
+                        { top: '81%', left: '55%', size: 0.2 },
+                        { top: '71%', left: '75%', size: 0.22 },
+                        { top: '85%', left: '85%', size: 0.19 },
+                        { top: '19%', left: '90%', size: 0.21 },
+                        { top: '39%', left: '95%', size: 0.18 }
+                    ],
+                    obstacles: [
+                        //{ type: 'basket', top: '48%', left: '26%', width: '130px', height: '120px' },
+                        //{ type: 'fan', top: '33%', left: '66%', width: '120px', height: '100px' },
+                        //{ type: 'teapot', top: '16%', left: '10%', width: '100px', height: '90px' },
+                        //{ type: 'plate', top: '40%', left: '46%', width: '110px', height: '90px' }
+                    ]
+                }
+            ]
+        };
+
+        // DOM elements
+        const gameScene = document.getElementById('gameScene');
+        const currentLevelEl = document.getElementById('currentLevel');
+        const objectTypeEl = document.getElementById('objectType');
+        const foundCountEl = document.getElementById('foundCount');
+        const totalCountEl = document.getElementById('totalCount');
+        const levelCompleteModal = document.getElementById('levelCompleteModal');
+        const gameCompleteModal = document.getElementById('gameCompleteModal');
+        const nextLevelBtn = document.getElementById('nextLevelBtn');
+        const restartBtn = document.getElementById('restartBtn');
+
+        // Initialize game
+        function initLevel() {
+            const level = gameState.levels[gameState.currentLevel - 1];
+
+            // Jika level punya allPositions, pilih 5 titik acak dari daftar tersebut
+            let positionsToUse = level.positions;
+            if (Array.isArray(level.allPositions) && level.allPositions.length > 0) {
+                // Filter hanya posisi yang valid (punya top dan left)
+                const validPositions = level.allPositions.filter(pos =>
+                    pos && pos.top && pos.left && !pos.top.includes('//') && !pos.left.includes('//')
+                );
+
+                if (validPositions.length < gameState.totalObjects) {
+                    console.warn(`Level ${level.level}: Only ${validPositions.length} valid positions available, need ${gameState.totalObjects}`);
+                }
+
+                const pool = [...validPositions]; // copy array
+
+                // Shuffle (Fisher–Yates)
+                for (let i = pool.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [pool[i], pool[j]] = [pool[j], pool[i]];
+                }
+
+                // Ambil tepat 5 titik (atau sebanyak yang tersedia jika kurang dari 5)
+                const countToSelect = Math.min(gameState.totalObjects, pool.length);
+                positionsToUse = pool.slice(0, countToSelect);
+                console.log(`Level ${level.level}: Selected ${positionsToUse.length} positions from ${validPositions.length} valid positions (total in array: ${level.allPositions.length})`);
+
+                if (positionsToUse.length < gameState.totalObjects) {
+                    console.error(`ERROR: Only ${positionsToUse.length} positions selected, expected ${gameState.totalObjects}`);
+                }
+            }
+
+            // Reset
+            gameState.foundObjects = 0;
+            gameScene.innerHTML = '';
+
+            // Update UI
+            currentLevelEl.textContent = gameState.currentLevel;
+            objectTypeEl.textContent = level.objectType;
+            foundCountEl.textContent = '0';
+            totalCountEl.textContent = gameState.totalObjects;
+
+            // Update scene background
+            gameScene.className = 'game-scene ' + level.sceneClass;
+
+            // Add decorations
+            addDecorations();
+
+            // Add hidden objects FIRST (z-index lower)
+            if (positionsToUse && positionsToUse.length > 0) {
+                console.log(`Creating ${positionsToUse.length} objects for level ${level.level}`);
+                positionsToUse.forEach((pos, index) => {
+                    console.log(`Creating object ${index + 1} at ${pos.top}, ${pos.left}, size: ${pos.size}`);
+                    createHiddenObject(level, pos, index);
+                });
+            } else if (level.positions && level.positions.length > 0) {
+                level.positions.forEach((pos, index) => {
+                    createHiddenObject(level, pos, index);
+                });
+            }
+
+            // Add obstacles AFTER (z-index higher, will cover some objects)
+            if (level.obstacles) {
+                level.obstacles.forEach(obstacle => {
+                    createObstacle(obstacle);
+                });
+            }
+
+            // Verify object count
+            const objectCount = document.querySelectorAll('.hidden-object').length;
+            console.log(`Level ${gameState.currentLevel}: ${objectCount} ${level.objectType} objects created (Expected: ${gameState.totalObjects})`);
+
+            if (objectCount !== gameState.totalObjects) {
+                console.error(`WARNING: Object count mismatch! Expected ${gameState.totalObjects}, got ${objectCount}`);
+            }
+        }
+
+        function addDecorations() {
+            // Add lanterns
+
+
+            // Add fireworks
+            const fireworkPositions = [
+                { top: '10%', left: '50%' },
+                { top: '20%', left: '30%' },
+                { top: '15%', left: '75%' }
+            ];
+
+            fireworkPositions.forEach(pos => {
+                const firework = document.createElement('div');
+                firework.className = 'firework';
+                firework.style.top = pos.top;
+                firework.style.left = pos.left;
+                gameScene.appendChild(firework);
+            });
+        }
+
+        function createHiddenObject(level, position, index) {
+            const obj = document.createElement('div');
+            obj.className = `hidden-object ${level.objectClass}`;
+            obj.style.top = position.top;
+            obj.style.left = position.left;
+
+            // Apply size variation for difficulty
+            if (position.size && position.size !== 1) {
+                obj.style.transform = `scale(${position.size})`;
+            }
+
+            obj.textContent = level.objectContent;
+            obj.dataset.index = index;
+
+            obj.addEventListener('click', function (e) {
+                handleObjectClick(this, e);
+            });
+
+            gameScene.appendChild(obj);
+        }
+
+        function createObstacle(obstacle) {
+            const obs = document.createElement('div');
+            obs.className = `obstacle ${obstacle.type}`;
+            obs.style.top = obstacle.top;
+            obs.style.left = obstacle.left;
+            obs.style.width = obstacle.width;
+            obs.style.height = obstacle.height;
+
+            gameScene.appendChild(obs);
+        }
+
+        function handleObjectClick(element, event) {
+            if (element.classList.contains('found')) return;
+
+            element.classList.add('found');
+            gameState.foundObjects++;
+
+            // Play sound
+            playSound(1000 + (gameState.foundObjects * 200), 0.2);
+
+            // Create particles
+            createParticles(event.clientX, event.clientY);
+
+            // Update UI
+            foundCountEl.textContent = gameState.foundObjects;
+
+            // Check if level complete
+            if (gameState.foundObjects === gameState.totalObjects) {
+                setTimeout(() => {
+                    completeLevel();
+                }, 500);
+            }
+        }
+
+        function createParticles(x, y) {
+            for (let i = 0; i < 10; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+                particle.style.background = ['#FFD700', '#FF0000', '#FFA500'][Math.floor(Math.random() * 3)];
+                document.body.appendChild(particle);
+
+                setTimeout(() => {
+                    particle.remove();
+                }, 1000);
+            }
+        }
+
+        function completeLevel() {
+            playSound(1500, 0.3);
+
+            if (gameState.currentLevel === gameState.levels.length) {
+                // Game complete
+                gameCompleteModal.classList.add('show');
+            } else {
+                // Level complete
+                levelCompleteModal.classList.add('show');
+            }
+        }
+
+        function nextLevel() {
+            levelCompleteModal.classList.remove('show');
+            gameState.currentLevel++;
+            initLevel();
+        }
+
+        function restartGame() {
+            gameCompleteModal.classList.remove('show');
+            gameState.currentLevel = 1;
+            initLevel();
+        }
+
+        // Event listeners
+        nextLevelBtn.addEventListener('click', nextLevel);
+        restartBtn.addEventListener('click', restartGame);
+
+        // Start game
+        initLevel();
+    </script>
+</body>
+
+</html>
